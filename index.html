@@ -3,19 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PTN News Studio - Professional Broadcast System</title>
+    <title>PTN News Studio - Professional Broadcast</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700;900&family=Poppins:wght@600;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { margin: 0; background: #000; overflow: hidden; font-family: 'Noto Sans Devanagari', sans-serif; }
         
-        /* BACKGROUND */
         .bg-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0a0000 0%, #000000 50%, #000a0a 100%); z-index: -1; }
         .bg-particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: 0; }
         .particle { position: absolute; background: radial-gradient(circle, rgba(255,0,0,0.3) 0%, transparent 70%); border-radius: 50%; animation: float 20s infinite ease-in-out; }
         @keyframes float { 0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; } 25% { opacity: 0.4; } 50% { opacity: 0.7; } 75% { opacity: 0.4; } }
         
-        /* HEADER */
         .header-bar { position: fixed; top: 0; width: 100%; height: 90px; background: linear-gradient(135deg, #cc0000 0%, #ff0000 50%, #cc0000 100%); border-bottom: 6px solid #ffcc00; display: flex; align-items: center; justify-content: space-between; padding: 0 50px; z-index: 50; box-shadow: 0 8px 30px rgba(0,0,0,0.9); animation: slideDown 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
         @keyframes slideDown { from { transform: translateY(-120%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .channel-logo { font-size: 56px; font-weight: 900; color: white; font-family: 'Poppins', sans-serif; text-shadow: 4px 4px 8px #000, 0 0 30px #ffcc00, 0 0 50px #ffcc00; letter-spacing: 4px; animation: logoGlow 2.5s infinite alternate; }
@@ -26,19 +24,16 @@
         @keyframes blink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
         .live-text { color: #ff0000; font-weight: 900; font-size: 28px; font-family: 'Poppins', sans-serif; }
         
-        /* TIME WIDGET */
         .time-widget { position: fixed; top: 100px; right: 25px; background: linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(20,0,0,0.95) 100%); padding: 20px 35px; border-radius: 20px; border: 4px solid #ffcc00; z-index: 40; box-shadow: 0 8px 30px rgba(255,204,0,0.6), inset 0 2px 10px rgba(255,204,0,0.2); }
         .time-display { font-size: 42px; color: #ffcc00; font-weight: 900; text-align: center; text-shadow: 3px 3px 6px #000, 0 0 20px #ffcc00; font-family: 'Poppins', sans-serif; }
         .date-display { font-size: 20px; color: #fff; text-align: center; margin-top: 8px; text-shadow: 2px 2px 4px #000; }
         
-        /* TV SCREEN */
         #tv-screen { position: fixed; top: 90px; left: 0; width: 100vw; height: calc(82vh - 90px); background: #000; display: flex; justify-content: center; align-items: center; overflow: hidden; z-index: 1; }
         .broadcast-container { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
         #news-video, #news-img { max-width: 92%; max-height: 92%; border: 6px solid #cc0000; box-shadow: 0 0 60px rgba(255,0,0,0.6), 0 0 120px rgba(255,204,0,0.4); border-radius: 15px; animation: mediaAppear 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
         #news-video { display: none; }
         @keyframes mediaAppear { from { opacity: 0; transform: scale(0.7) translateY(80px) rotateX(20deg); } to { opacity: 1; transform: scale(1) translateY(0) rotateX(0deg); } }
         
-        /* ANCHOR OVERLAY */
         .anchor-overlay { position: absolute; bottom: 18%; left: 3%; width: 280px; height: 350px; background: linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(20,0,0,0.85) 100%); border: 5px solid #ffcc00; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 10px 40px rgba(0,0,0,0.9), inset 0 2px 10px rgba(255,204,0,0.3); animation: anchorSlideIn 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
         @keyframes anchorSlideIn { from { opacity: 0; transform: translateX(-300px) scale(0.5); } to { opacity: 1; transform: translateX(0) scale(1); } }
         .anchor-avatar { width: 140px; height: 140px; border-radius: 50%; background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); border: 5px solid #ffcc00; display: flex; align-items: center; justify-content: center; font-size: 60px; margin-bottom: 15px; box-shadow: 0 8px 25px rgba(255,204,0,0.5); animation: avatarPulse 2s infinite; }
@@ -54,14 +49,12 @@
         .speak-bar:nth-child(5) { height: 15px; animation-delay: 0.4s; }
         @keyframes speakWave { 0%, 100% { transform: scaleY(0.5); opacity: 0.5; } 50% { transform: scaleY(1.2); opacity: 1; } }
         
-        /* CORNER DECORATIONS */
         .corner-decoration { position: absolute; width: 70px; height: 70px; border: 6px solid #ffcc00; z-index: 10; }
         .corner-tl { top: 2%; left: 2%; border-right: none; border-bottom: none; }
         .corner-tr { top: 2%; right: 2%; border-left: none; border-bottom: none; }
         .corner-bl { bottom: 20%; left: 2%; border-right: none; border-top: none; }
         .corner-br { bottom: 20%; right: 2%; border-left: none; border-top: none; }
         
-        /* TICKER */
         .ticker-wrap { position: fixed; bottom: 0; width: 100%; height: 18vh; background: linear-gradient(135deg, #cc0000 0%, #990000 50%, #cc0000 100%); display: flex; flex-direction: column; justify-content: center; padding: 0 30px; color: white; border-top: 10px solid #ffcc00; box-shadow: 0 -15px 40px rgba(0,0,0,0.9); z-index: 100; animation: tickerSlideUp 1s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
         @keyframes tickerSlideUp { from { transform: translateY(120%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .ticker-header { display: flex; align-items: center; margin-bottom: 12px; }
@@ -70,11 +63,9 @@
         #headline { font-size: 2.4vw; font-weight: 700; text-shadow: 4px 4px 8px #000; line-height: 1.6; animation: textSlideIn 1s ease-out; }
         @keyframes textSlideIn { from { opacity: 0; transform: translateX(-80px); } to { opacity: 1; transform: translateX(0); } }
         
-        /* NEWS COUNTER */
         .news-counter { position: fixed; top: 100px; left: 25px; background: linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(20,0,0,0.95) 100%); padding: 20px 35px; border-radius: 20px; border: 4px solid #ff0000; z-index: 40; color: white; font-size: 22px; font-weight: 700; box-shadow: 0 8px 30px rgba(255,0,0,0.6), inset 0 2px 10px rgba(255,0,0,0.2); }
         .counter-number { color: #ffcc00; font-size: 38px; font-weight: 900; font-family: 'Poppins', sans-serif; text-shadow: 2px 2px 4px #000, 0 0 15px #ffcc00; }
         
-        /* START OVERLAY */
         #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(0,0,0,0.98) 0%, rgba(20,0,0,0.98) 100%); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; }
         .start-button { background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); color: white; border: 6px solid #ffcc00; padding: 50px 120px; font-size: 54px; font-weight: 900; border-radius: 30px; cursor: pointer; box-shadow: 0 20px 50px rgba(255,0,0,0.7), inset 0 4px 15px rgba(255,255,255,0.3); animation: startPulse 2s infinite; transition: all 0.4s; letter-spacing: 4px; font-family: 'Poppins', sans-serif; }
         .start-button:hover { transform: scale(1.15) translateY(-10px); box-shadow: 0 30px 80px rgba(255,0,0,1); }
@@ -82,13 +73,11 @@
         .start-subtitle { color: #ffcc00; font-size: 32px; margin-top: 40px; animation: fadeInOut 2.5s infinite; text-shadow: 2px 2px 4px #000; }
         @keyframes fadeInOut { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
         
-        /* LOADING */
         .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 900; flex-direction: column; }
         .loading-spinner { width: 100px; height: 100px; border: 10px solid #333; border-top: 10px solid #ffcc00; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .loading-text { color: #ffcc00; font-size: 28px; margin-top: 25px; font-weight: 700; text-shadow: 2px 2px 4px #000; }
         
-        /* AUDIO VISUALIZER */
         .audio-visualizer { position: fixed; bottom: 20px; right: 25px; display: flex; gap: 6px; z-index: 110; }
         .vis-bar { width: 10px; background: linear-gradient(180deg, #ffcc00 0%, #ff0000 100%); border-radius: 5px; box-shadow: 0 0 15px rgba(255,204,0,0.6); animation: visualize 0.8s ease-in-out infinite; }
         .vis-bar:nth-child(1) { height: 25px; animation-delay: 0s; }
@@ -99,7 +88,6 @@
         .vis-bar:nth-child(6) { height: 30px; animation-delay: 0.5s; }
         @keyframes visualize { 0%, 100% { transform: scaleY(0.4); opacity: 0.5; } 50% { transform: scaleY(1.2); opacity: 1; } }
         
-        /* RESPONSIVE */
         @media (max-width: 768px) {
             .channel-logo { font-size: 36px; }
             .live-text { font-size: 20px; }
@@ -149,7 +137,7 @@
             <div class="corner-decoration corner-bl"></div>
             <div class="corner-decoration corner-br"></div>
             
-            <video id="news-video" controls muted></video>
+            <video id="news-video" controls muted playsinline></video>
             <img id="news-img" src="https://via.placeholder.com/1280x720/000000/FFFFFF/?text=PTN+NEWS" alt="News">
             
             <div class="anchor-overlay">
@@ -188,8 +176,7 @@
     </audio>
     
     <script>
-        // ============ CONFIGURATION ============
-        // Replace YOUR_SHEET_ID with your Google Sheets CSV URL
+        // CONFIGURATION - Replace with your Google Sheets CSV URL
         const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5LBOefZdg-qJDLrY3I2RS2GDuiwkfTUDAPikuoXhabZomXt4JPMcQ7obkE663GHOoG2f-J0DJ8QKz/pub?gid=0&single=true&output=csv';
 
         let newsData = [];
@@ -197,7 +184,6 @@
         let isRunning = false;
         let bgMusicPlaying = false;
 
-        // ============ CREATE PARTICLES ============
         function createParticles() {
             const container = document.getElementById('particles');
             for (let i = 0; i < 40; i++) {
@@ -213,7 +199,6 @@
             }
         }
 
-        // ============ UPDATE TIME ============
         function updateTime() {
             const now = new Date();
             const time = now.toLocaleTimeString('hi-IN', { hour12: false });
@@ -223,7 +208,6 @@
                 month: 'long', 
                 day: 'numeric' 
             });
-            
             document.getElementById('timeDisplay').innerText = time;
             document.getElementById('dateDisplay').innerText = date;
         }
@@ -231,7 +215,6 @@
         setInterval(updateTime, 1000);
         updateTime();
 
-        // ============ LOAD NEWS FROM GOOGLE SHEET ============
         async function loadNews() {
             const loadingScreen = document.getElementById('loadingScreen');
             loadingScreen.style.display = 'flex';
@@ -239,7 +222,7 @@
             try {
                 const res = await fetch(CSV_LINK + '&t=' + Date.now());
                 const text = await res.text();
-                const rows = text.split('\n').slice(1); // Skip header row
+                const rows = text.split('\n').slice(1);
                 
                 newsData = rows.map(r => {
                     const cols = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
@@ -261,7 +244,6 @@
             }
         }
 
-        // ============ CONVERT NUMBERS TO HINDI ============
         function convertToHindiNumbers(text) {
             const digitMap = {
                 '0': 'शून्य', '1': 'एक', '2': 'दो', '3': 'तीन', '4': 'चार',
@@ -275,12 +257,11 @@
             };
             
             let result = text;
-            result = result.replace(/\b20(\d{2})\b/g, function(match) { return digitMap[match] || match; });
-            result = result.replace(/\b(\d+)\b/g, function(match) { return digitMap[match] || match; });
+            result = result.replace(/\b20(\d{2})\b/g, match => digitMap[match] || match);
+            result = result.replace(/\b(\d+)\b/g, match => digitMap[match] || match);
             return result;
         }
 
-        // ============ TEXT-TO-SPEECH ============
         function speak(txt) {
             return new Promise(resolve => {
                 window.speechSynthesis.cancel();
@@ -298,9 +279,8 @@
             });
         }
 
-        // ============ PLAY VOICE FILE ============
         function playVoice(url) {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
                 if (!url || !url.startsWith('http')) { resolve(); return; }
                 const audio = new Audio(url);
                 audio.volume = 1;
@@ -310,7 +290,6 @@
             });
         }
 
-        // ============ SHOW MEDIA (IMAGE OR VIDEO) ============
         function showMedia(item) {
             const video = document.getElementById('news-video');
             const img = document.getElementById('news-img');
@@ -326,7 +305,12 @@
                 video.style.display = 'block';
                 img.style.display = 'none';
                 video.load();
-                video.play().catch(e => console.error('Video play error:', e));
+                video.play().catch(e => {
+                    console.warn('Video autoplay blocked, showing image instead');
+                    video.style.display = 'none';
+                    img.style.display = 'block';
+                    img.src = item.image || "https://via.placeholder.com/1280x720/cc0000/FFFFFF/?text=PTN+NEWS+LIVE";
+                });
             } else if (item.image && item.image.startsWith('http')) {
                 img.src = item.image;
                 img.style.display = 'block';
@@ -338,12 +322,10 @@
             }
         }
 
-        // ============ UPDATE NEWS COUNTER ============
         function updateCounter() {
             document.getElementById('newsCounter').innerText = `${index + 1}/${newsData.length}`;
         }
 
-        // ============ PLAY BACKGROUND MUSIC ============
         function playBackgroundMusic() {
             const bgMusic = document.getElementById('bgMusic');
             if (!bgMusicPlaying) {
@@ -353,7 +335,6 @@
             }
         }
 
-        // ============ MAIN NEWS LOOP ============
         async function runLoop() {
             if (!isRunning) return;
             if (newsData.length === 0) await loadNews();
@@ -381,7 +362,6 @@
             runLoop();
         }
 
-        // ============ START CHANNEL ============
         function startChannel() {
             document.getElementById('overlay').style.display = 'none';
             createParticles();
