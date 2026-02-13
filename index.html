@@ -1,0 +1,248 @@
+// ============ CONFIGURATION ============
+// Replace YOUR_SHEET_ID with your Google Sheets ID
+const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5LBOefZdg-qJDLrY3I2RS2GDuiwkfTUDAPikuoXhabZomXt4JPMcQ7obkE663GHOoG2f-J0DJ8QKz/pub?gid=0&single=true&output=csv';
+
+let newsData = [];
+let index = 0;
+let isRunning = false;
+let bgMusicPlaying = false;
+
+// ============ CREATE PARTICLES ============
+function createParticles() {
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 40; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.width = Math.random() * 20 + 8 + 'px';
+        particle.style.height = particle.style.width;
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.top = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 20 + 's';
+        particle.style.animationDuration = Math.random() * 15 + 15 + 's';
+        container.appendChild(particle);
+    }
+}
+
+// ============ UPDATE TIME ============
+function updateTime() {
+    const now = new Date();
+    const time = now.toLocaleTimeString('hi-IN', { hour12: false });
+    const date = now.toLocaleDateString('hi-IN', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+    
+    document.getElementById('timeDisplay').innerText = time;
+    document.getElementById('dateDisplay').innerText = date;
+}
+
+setInterval(updateTime, 1000);
+updateTime();
+
+// ============ LOAD NEWS FROM GOOGLE SHEET ============
+async function loadNews() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    loadingScreen.style.display = 'flex';
+    
+    try {
+        const res = await fetch(CSV_LINK + '&t=' + Date.now());
+        const text = await res.text();
+        const rows = text.split('\n').slice(1); // Skip header row
+        
+        newsData = rows.map(r => {
+            const cols = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            return { 
+                text: cols[0] ? cols[0].replace(/"/g, '').trim() : "",
+                image: cols[1] ? cols[1].replace(/"/g, '').trim() : "",
+                video: cols[2] ? cols[2].replace(/"/g, '').trim() : "",
+                voice: cols[3] ? cols[3].replace(/"/g, '').trim() : ""
+            };
+        }).filter(n => n.text.length > 3);
+        
+        console.log(`✅ ${newsData.length} समाचार लोड हुए`);
+        loadingScreen.style.display = 'none';
+        return true;
+    } catch (e) { 
+        console.error("❌ Error loading news:", e); 
+        loadingScreen.style.display = 'none';
+        return false; 
+    }
+}
+
+// ============ CONVERT NUMBERS TO HINDI ============
+function convertToHindiNumbers(text) {
+    const digitMap = {
+        '0': 'शून्य', '1': 'एक', '2': 'दो', '3': 'तीन', '4': 'चार',
+        '5': 'पांच', '6': 'छह', '7': 'सात', '8': 'आठ', '9': 'नौ',
+        '10': 'दस', '11': 'ग्यारह', '12': 'बारह', '13': 'तेरह', '14': 'चौदह',
+        '15': 'पंद्रह', '16': 'सोलह', '17': 'सत्रह', '18': 'अठारह', '19': 'उन्नीस',
+        '20': 'बीस', '30': 'तीस', '40': 'चालीस', '50': 'पचास',
+        '60': 'साठ', '70': 'सत्तर', '80': 'अस्सी', '90': 'नब्बे',
+        '100': 'सौ', '1000': 'हजार', 
+        '2024': 'दो हजार चौबीस', '2025': 'दो हजार पच्चीस', '2026': 'दो हजार छब्बीस'
+    };
+    
+    let result = text;
+    
+    // Replace year patterns
+    result = result.replace(/\b20(\d{2})\b/g, function(match) {
+        return digitMap[match] || match;
+    });
+    
+    // Replace standalone numbers
+    result = result.replace(/\b(\d+)\b/g, function(match) {
+        return digitMap[match] || match;
+    });
+    
+    return result;
+}
+
+// ============ TEXT-TO-SPEECH ============
+function speak(txt) {
+    return new Promise(resolve => {
+        window.speechSynthesis.cancel();
+        
+        const hindiText = convertToHindiNumbers(txt);
+        
+        const utterance = new SpeechSynthesisUtterance(hindiText);
+        utterance.lang = 'hi-IN'; 
+        utterance.rate = 0.82;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+        
+        const voices = window.speechSynthesis.getVoices();
+        const hiVoice = voices.find(v => v.lang.includes('hi')) || voices[0];
+        utterance.voice = hiVoice;
+        utterance.onend = resolve;
+        
+        setTimeout(() => {
+            window.speechSynthesis.speak(utterance);
+        }, 600);
+    });
+}
+
+// ============ PLAY VOICE FILE ============
+function playVoice(url) {
+    return new Promise((resolve, reject) => {
+        if (!url || !url.startsWith('http')) {
+            resolve();
+            return;
+        }
+        
+        const audio = new Audio(url);
+        audio.volume = 1;
+        audio.onended = resolve;
+        audio.onerror = () => {
+            console.error('Voice playback failed');
+            resolve();
+        };
+        audio.play().catch(() => resolve());
+    });
+}
+
+// ============ SHOW MEDIA (IMAGE OR VIDEO) ============
+function showMedia(item) {
+    const video = document.getElementById('news-video');
+    const img = document.getElementById('news-img');
+    
+    // Reset animations
+    video.style.animation = 'none';
+    img.style.animation = 'none';
+    
+    setTimeout(() => {
+        video.style.animation = 'mediaAppear 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+        img.style.animation = 'mediaAppear 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+    }, 10);
+
+    // Show video if available
+    if (item.video && item.video.startsWith('http')) {
+        video.src = item.video;
+        video.style.display = 'block';
+        img.style.display = 'none';
+        video.load();
+        video.play().catch(e => console.error('Video play error:', e));
+    } 
+    // Show image if available
+    else if (item.image && item.image.startsWith('http')) {
+        img.src = item.image;
+        img.style.display = 'block';
+        video.style.display = 'none';
+    } 
+    // Default placeholder
+    else {
+        img.src = "https://via.placeholder.com/1280x720/cc0000/FFFFFF/?text=PTN+NEWS+LIVE";
+        img.style.display = 'block';
+        video.style.display = 'none';
+    }
+}
+
+// ============ UPDATE NEWS COUNTER ============
+function updateCounter() {
+    document.getElementById('newsCounter').innerText = `${index + 1}/${newsData.length}`;
+}
+
+// ============ PLAY BACKGROUND MUSIC ============
+function playBackgroundMusic() {
+    const bgMusic = document.getElementById('bgMusic');
+    if (!bgMusicPlaying) {
+        bgMusic.volume = 0.15;
+        bgMusic.play().catch(e => console.log('Background music autoplay blocked'));
+        bgMusicPlaying = true;
+    }
+}
+
+// ============ MAIN NEWS LOOP ============
+async function runLoop() {
+    if (!isRunning) return;
+    
+    if (newsData.length === 0) {
+        await loadNews();
+    }
+    
+    if (index >= newsData.length) {
+        index = 0;
+        await loadNews(); // Refresh data
+    }
+
+    const item = newsData[index];
+    
+    // Update headline with animation
+    const headlineEl = document.getElementById('headline');
+    headlineEl.style.animation = 'none';
+    setTimeout(() => {
+        headlineEl.innerText = item.text;
+        headlineEl.style.animation = 'textSlideIn 1s ease-out';
+    }, 10);
+    
+    // Show media (video or image)
+    showMedia(item);
+    updateCounter();
+
+    // Play voice file if available, otherwise use text-to-speech
+    if (item.voice && item.voice.startsWith('http')) {
+        await playVoice(item.voice);
+    } else if (item.text) {
+        await speak(item.text);
+    }
+    
+    // Pause before next news
+    await new Promise(r => setTimeout(r, 2500));
+
+    index++;
+    runLoop();
+}
+
+// ============ START CHANNEL ============
+function startChannel() {
+    document.getElementById('overlay').style.display = 'none';
+    createParticles();
+    playBackgroundMusic();
+    window.speechSynthesis.getVoices(); // Load voices
+    isRunning = true;
+    runLoop();
+}
+
+// Load voices on page load
+window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
