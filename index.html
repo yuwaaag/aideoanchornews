@@ -3,117 +3,729 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PTN News Live Studio</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@700;900&display=swap" rel="stylesheet">
+    <title>PTN News Studio - Live Broadcast</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;900&family=Rajdhani:wght@600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --red: #e8000d;
+            --red-dark: #9a0009;
+            --gold: #f5c518;
+            --white: #ffffff;
+            --black: #000000;
+            --bg: #080000;
+            --ticker-h: 100px;
+            --header-h: 75px;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #000; font-family: 'Noto Sans Devanagari', sans-serif; overflow: hidden; }
-        
-        /* News Header */
-        .header { position: fixed; top: 0; width: 100%; height: 60px; background: linear-gradient(90deg, #900, #f00); display: flex; align-items: center; padding: 0 20px; color: white; font-size: 24px; font-weight: 900; border-bottom: 4px solid #ffcc00; z-index: 10; }
+        body { background: var(--bg); overflow: hidden; font-family: 'Noto Sans Devanagari', sans-serif; color: var(--white); height: 100vh; width: 100vw; }
 
-        /* Main Screen */
-        #main-screen { position: fixed; top: 60px; left: 0; width: 100%; height: calc(100% - 180px); background: #111; display: flex; justify-content: center; align-items: center; }
-        #news-video, #news-img { max-width: 100%; max-height: 100%; display: none; border: 2px solid #333; }
+        /* Subtle scanlines */
+        body::after {
+            content: '';
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px);
+            pointer-events: none; z-index: 9999;
+        }
 
-        /* Bottom Ticker/Headline */
-        .ticker-box { position: fixed; bottom: 0; width: 100%; height: 120px; background: #ffee00; border-top: 5px solid #000; display: flex; align-items: center; padding: 0 20px; }
-        #headline-text { font-size: 32px; color: #000; font-weight: 700; line-height: 1.2; }
+        /* ===== OVERLAY ===== */
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(ellipse at center, #1c0000 0%, #000 80%);
+            z-index: 5000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            cursor: pointer; transition: opacity 0.8s ease;
+        }
+        #overlay.hidden { opacity: 0; pointer-events: none; }
+        .overlay-logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(70px, 16vw, 150px);
+            color: var(--red);
+            text-shadow: 0 0 50px rgba(232,0,13,0.9), 0 0 100px rgba(232,0,13,0.4);
+            letter-spacing: 10px;
+            animation: pulseLogo 2s ease-in-out infinite;
+        }
+        @keyframes pulseLogo { 0%,100% { text-shadow: 0 0 40px rgba(232,0,13,0.8); } 50% { text-shadow: 0 0 90px rgba(232,0,13,1), 0 0 130px rgba(255,80,80,0.5); } }
+        .overlay-sub { font-family: 'Rajdhani', sans-serif; font-size: clamp(13px,2.2vw,19px); color: var(--gold); letter-spacing: 5px; margin: 8px 0 40px; text-transform: uppercase; }
+        .start-btn {
+            padding: 17px 52px; font-size: clamp(17px,2.8vw,25px);
+            background: linear-gradient(135deg, var(--red), var(--red-dark));
+            border: 3px solid var(--gold); border-radius: 60px;
+            color: white; font-weight: 700; cursor: pointer;
+            transition: all 0.3s; box-shadow: 0 0 35px rgba(232,0,13,0.5);
+            letter-spacing: 2px; font-family: 'Rajdhani', sans-serif;
+        }
+        .start-btn:hover { transform: scale(1.08); box-shadow: 0 0 70px rgba(232,0,13,0.9); }
 
-        /* Start Button Overlay */
-        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; color: white; }
-        .start-btn { padding: 20px 50px; font-size: 28px; background: #f00; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 0 20px rgba(255,0,0,0.5); }
+        /* ===== HEADER ===== */
+        .header-bar {
+            position: fixed; top: 0; width: 100%; height: var(--header-h);
+            background: linear-gradient(90deg, #5a0000 0%, var(--red) 30%, #ff2525 50%, var(--red) 70%, #5a0000 100%);
+            border-bottom: 4px solid var(--gold);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 28px; z-index: 200;
+            box-shadow: 0 6px 30px rgba(0,0,0,0.9);
+        }
+        .header-left { display: flex; align-items: center; gap: 18px; }
+        .channel-logo { font-family: 'Bebas Neue', sans-serif; font-size: clamp(30px,5vw,50px); color: white; letter-spacing: 4px; text-shadow: 2px 2px 8px #000; }
+        .live-badge {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.25);
+            padding: 5px 13px; border-radius: 6px;
+            font-family: 'Rajdhani', sans-serif; font-size: 13px; letter-spacing: 2px;
+        }
+        .live-dot { width: 10px; height: 10px; background: var(--gold); border-radius: 50%; animation: blinkDot 1s ease-in-out infinite; }
+        @keyframes blinkDot { 0%,100% { opacity:1; } 50% { opacity:0.25; } }
+        .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+        #live-clock { font-family: 'Rajdhani', sans-serif; font-size: clamp(18px,2.5vw,28px); font-weight: 700; color: var(--gold); letter-spacing: 2px; }
+        #live-date { font-size: clamp(10px,1.4vw,13px); color: rgba(255,255,255,0.75); letter-spacing: 1px; }
+
+        /* ===== TV SCREEN ===== */
+        #tv-screen {
+            position: fixed; top: var(--header-h); left: 0; right: 0; bottom: var(--ticker-h);
+            background: #040000;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; z-index: 1;
+        }
+        .screen-vignette {
+            position: absolute; inset: 0;
+            background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.6) 100%);
+            pointer-events: none; z-index: 2;
+        }
+
+        /* Loading */
+        #loading-state { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+        .loading-ring { width: 58px; height: 58px; border: 4px solid rgba(232,0,13,0.2); border-top-color: var(--red); border-radius: 50%; animation: spin 0.85s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { font-family: 'Rajdhani', sans-serif; color: rgba(255,255,255,0.35); font-size: 13px; letter-spacing: 3px; }
+
+        /* No media */
+        #no-media-state { display: none; flex-direction: column; align-items: center; gap: 14px; opacity: 0.5; }
+
+        /* Media error */
+        #media-error { display: none; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+
+        /* Video iframe (Google Drive preview ke liye) */
+        #news-iframe {
+            display: none;
+            width: 92%; height: 88%;
+            border: 3px solid rgba(245,197,24,0.35);
+            box-shadow: 0 0 60px rgba(232,0,13,0.25);
+            border-radius: 8px;
+            background: #000;
+            animation: fadeMedia 0.5s ease;
+        }
+
+        #news-img {
+            display: none;
+            max-width: 94%; max-height: 92%;
+            object-fit: contain;
+            border: 3px solid rgba(245,197,24,0.35);
+            box-shadow: 0 0 60px rgba(232,0,13,0.25);
+            border-radius: 8px;
+            animation: fadeMedia 0.5s ease;
+        }
+
+        /* Direct video (non-drive) */
+        #news-video {
+            display: none;
+            max-width: 94%; max-height: 92%;
+            object-fit: contain;
+            border: 3px solid rgba(245,197,24,0.35);
+            box-shadow: 0 0 60px rgba(232,0,13,0.25);
+            border-radius: 8px;
+            animation: fadeMedia 0.5s ease;
+        }
+
+        @keyframes fadeMedia { from { opacity:0; transform:scale(0.97); } to { opacity:1; transform:scale(1); } }
+
+        /* ===== INFO BAR ===== */
+        .news-info-bar {
+            position: fixed; top: calc(var(--header-h) + 14px);
+            left: 0; right: 0;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            padding: 0 18px; z-index: 50; pointer-events: none;
+        }
+        .info-pill {
+            background: rgba(0,0,0,0.72); backdrop-filter: blur(8px);
+            border: 1px solid rgba(245,197,24,0.35); border-radius: 8px;
+            padding: 9px 16px; pointer-events: all;
+        }
+        .pill-label { font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1.5px; font-family: 'Rajdhani', sans-serif; }
+        .pill-value { font-size: 21px; font-weight: 700; color: var(--gold); font-family: 'Rajdhani', sans-serif; line-height: 1.1; }
+        .status-pill { text-align: right; }
+        #status-icon { font-size: 15px; }
+        #status-text { font-size: 11px; color: rgba(255,255,255,0.55); font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; }
+
+        /* ===== PROGRESS BAR ===== */
+        #progress-bar {
+            position: fixed; bottom: var(--ticker-h); left: 0;
+            height: 3px; background: var(--gold);
+            width: 0%; z-index: 201;
+            box-shadow: 0 0 8px rgba(245,197,24,0.7);
+        }
+
+        /* ===== TICKER ===== */
+        .ticker-wrap {
+            position: fixed; bottom: 0; left: 0;
+            width: 100%; height: var(--ticker-h);
+            background: linear-gradient(90deg, #7a0000, var(--red) 15%, var(--red) 85%, #7a0000);
+            border-top: 5px solid var(--gold);
+            z-index: 200; display: flex; flex-direction: column;
+            overflow: hidden; box-shadow: 0 -6px 30px rgba(0,0,0,0.9);
+        }
+        .ticker-top-bar {
+            display: flex; align-items: center; gap: 13px;
+            padding: 5px 18px 3px;
+            background: rgba(0,0,0,0.22); border-bottom: 1px solid rgba(245,197,24,0.25);
+        }
+        .breaking-badge {
+            background: var(--gold); color: var(--black);
+            font-size: 11px; font-weight: 900; padding: 3px 10px; border-radius: 4px;
+            letter-spacing: 2px; font-family: 'Rajdhani', sans-serif; white-space: nowrap;
+            animation: flashBadge 1.5s ease-in-out infinite;
+        }
+        @keyframes flashBadge { 0%,100% { opacity:1; } 50% { opacity:0.55; } }
+        .ticker-divider { width: 2px; height: 13px; background: rgba(255,255,255,0.25); }
+        #ticker-scroll { font-size: 12px; color: rgba(255,255,255,0.65); font-family: 'Rajdhani', sans-serif; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; flex: 1; }
+        .headline-wrap { flex: 1; display: flex; align-items: center; padding: 0 22px; overflow: hidden; }
+        #headline {
+            font-size: clamp(17px, 3.1vw, 35px);
+            font-weight: 700; color: white;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            width: 100%;
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+        #headline.fade-out { opacity: 0; transform: translateY(8px); }
+
+        /* ===== CONTROLS ===== */
+        .controls {
+            position: fixed; top: 50%; right: 16px;
+            transform: translateY(-50%);
+            display: flex; flex-direction: column; gap: 11px; z-index: 100;
+        }
+        .ctrl-btn {
+            width: 43px; height: 43px;
+            background: rgba(0,0,0,0.72); backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.18); border-radius: 50%;
+            color: white; font-size: 15px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .ctrl-btn:hover { background: rgba(232,0,13,0.55); border-color: var(--gold); transform: scale(1.1); }
+        .ctrl-btn:active { transform: scale(0.93); }
+        .ctrl-btn.active { background: rgba(232,0,13,0.75); border-color: var(--gold); }
+
+        /* ===== TOAST ===== */
+        #toast {
+            position: fixed; top: calc(var(--header-h) + 18px); left: 50%;
+            transform: translateX(-50%) translateY(-15px);
+            background: rgba(15,0,0,0.95); border: 2px solid var(--red);
+            border-radius: 10px; padding: 13px 22px;
+            color: white; font-size: 14px; z-index: 1000;
+            opacity: 0; transition: all 0.35s ease;
+            text-align: center; max-width: 88vw; pointer-events: none;
+        }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
 
-    <div id="overlay">
-        <button class="start-btn" onclick="startStudio()">▶ START BROADCAST</button>
-        <p style="margin-top: 20px;">News dikhane ke liye button dabayein</p>
+<!-- OVERLAY -->
+<div id="overlay">
+    <div class="overlay-logo">PTN NEWS</div>
+    <div class="overlay-sub">सत्य की आवाज़ • Voice of Truth</div>
+    <button class="start-btn" onclick="startChannel()">▶ LIVE BROADCAST SHURU KAREIN</button>
+    <p style="margin-top:16px; color:rgba(255,255,255,0.3); font-size:12px; letter-spacing:3px;">CLICK TO BEGIN</p>
+</div>
+
+<!-- HEADER -->
+<div class="header-bar">
+    <div class="header-left">
+        <div class="channel-logo">PTN NEWS</div>
+        <div class="live-badge"><div class="live-dot"></div><span>LIVE</span></div>
     </div>
-
-    <div class="header">PTN NEWS LIVE UPDATES</div>
-
-    <div id="main-screen">
-        <video id="news-video" autoplay muted></video>
-        <img id="news-img" src="">
+    <div class="header-right">
+        <div id="live-clock">--:--:--</div>
+        <div id="live-date">Loading...</div>
     </div>
+</div>
 
-    <div class="ticker-box">
-        <div id="headline-text">Khabar load ho rahi hai...</div>
+<!-- INFO BAR -->
+<div class="news-info-bar">
+    <div class="info-pill">
+        <div class="pill-label">Live Khabar</div>
+        <div class="pill-value"><span id="cur-idx">0</span> / <span id="total-idx">0</span></div>
     </div>
+    <div class="info-pill status-pill">
+        <div id="status-icon">⏳</div>
+        <div id="status-text">Initializing...</div>
+    </div>
+</div>
 
-    <script>
-        // 1. Yahan apni Sheet ka CSV link paste karein
-        const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRp-jlH7474qQaJhBwVSKJCdKQOPlP_HYd5vcjdmg4mLChzCcf1icqe4xG6enPN0kEhCHjUXxW5r8xb/pub?gid=257041110&single=true&output=csv'; 
+<!-- TV SCREEN -->
+<div id="tv-screen">
+    <div class="screen-vignette"></div>
+    <div id="loading-state">
+        <div class="loading-ring"></div>
+        <div class="loading-text">LOADING...</div>
+    </div>
+    <div id="no-media-state">
+        <div style="font-size:55px;">📰</div>
+        <div style="font-size:15px;">Sirf Text Khabar</div>
+    </div>
+    <div id="media-error">
+        <div style="font-size:50px;">⚠️</div>
+        <div style="font-size:15px;">Media load nahi hui</div>
+        <div style="font-size:12px; opacity:0.5;">Thodi der baad agle par jaayenge...</div>
+    </div>
+    <!--
+        Google Drive VIDEO ke liye iframe use karein (preview link)
+        Direct MP4 / Image ke liye niche wale elements hain
+    -->
+    <iframe id="news-iframe" src="" allow="autoplay" frameborder="0" allowfullscreen></iframe>
+    <img id="news-img" src="" alt="News">
+    <video id="news-video" autoplay playsinline muted></video>
+</div>
 
-        let newsList = [];
-        let index = 0;
+<!-- CONTROLS -->
+<div class="controls">
+    <button class="ctrl-btn" onclick="goToNext()" title="Next (→)">⏭</button>
+    <button class="ctrl-btn" id="pause-btn" onclick="togglePause()" title="Pause (P)">⏸</button>
+    <button class="ctrl-btn" onclick="goToPrev()" title="Prev (←)">⏮</button>
+    <button class="ctrl-btn" id="mute-btn" onclick="toggleMute()" title="Mute (M)">🔊</button>
+    <button class="ctrl-btn" onclick="refreshData()" title="Refresh (R)">🔄</button>
+</div>
 
-        async function fetchData() {
-            try {
-                const res = await fetch(CSV_LINK + '&cache=' + Math.random());
-                const text = await res.text();
-                const rows = text.split('\n').slice(1); // Pehli row chhodi
+<!-- PROGRESS BAR -->
+<div id="progress-bar"></div>
 
-                newsList = rows.map(row => {
-                    const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                    return {
-                        title: cols[1] ? cols[1].replace(/"/g, '') : "", // Column B
-                        media: cols[3] ? cols[3].replace(/"/g, '').trim() : "" // Column D
-                    };
-                }).filter(n => n.title && n.media);
-            } catch (err) {
-                console.error("Error fetching data");
-            }
+<!-- TICKER -->
+<div class="ticker-wrap">
+    <div class="ticker-top-bar">
+        <div class="breaking-badge">● BREAKING</div>
+        <div class="ticker-divider"></div>
+        <div id="ticker-scroll">PTN News — सत्य की आवाज़ — Loading...</div>
+    </div>
+    <div class="headline-wrap">
+        <div id="headline">डेटा लोड हो रहा है...</div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+
+<script>
+// ============================================================
+//  ⚙️  CONFIGURATION — SIRF YAHAAN BADLAV KAREIN
+// ============================================================
+const CONFIG = {
+    // ↓ Google Sheet > File > Share > Publish to Web > CSV link yahan paste karein
+    CSV_LINK: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR_00lc89klk3FBoJCEOeet4uawIoHjQvDAu4z31hyIcgU0AspzizgsHsG7-icUqv7sLbhddlQSf9z7/pub?gid=1575189474&single=true&output=csv',
+
+    // Column mapping (0-based index — A=0, B=1, C=2, D=3, E=4)
+    COL_TEXT: 1,           // Column B = News Text
+    COL_DIRECT_LINK: 3,    // Column D = Direct Link (Apps Script ne bhara hua)
+
+    DISPLAY_TIME_MS: 3000, // Media ke baad kitna rukna hai (milliseconds)
+    AUTO_REFRESH_MIN: 5,   // Auto-refresh minutes (0 = band)
+    SPEECH_RATE: 0.88,     // 0.5 (slow) to 1.5 (fast)
+    SPEECH_LANG: 'hi-IN',
+    RETRY_MAX: 3,
+    VIDEO_TIMEOUT_MS: 9000
+};
+
+// ============================================================
+//  STATE
+// ============================================================
+const S = {
+    data: [], idx: 0,
+    playing: false, paused: false, muted: false,
+    skipReq: false, prevReq: false,
+    refreshTimer: null
+};
+
+// ============================================================
+//  DOM CACHE
+// ============================================================
+const D = {
+    overlay:      document.getElementById('overlay'),
+    headline:     document.getElementById('headline'),
+    img:          document.getElementById('news-img'),
+    video:        document.getElementById('news-video'),
+    iframe:       document.getElementById('news-iframe'),
+    loadingState: document.getElementById('loading-state'),
+    noMedia:      document.getElementById('no-media-state'),
+    mediaErr:     document.getElementById('media-error'),
+    curIdx:       document.getElementById('cur-idx'),
+    totalIdx:     document.getElementById('total-idx'),
+    statusIcon:   document.getElementById('status-icon'),
+    statusText:   document.getElementById('status-text'),
+    pauseBtn:     document.getElementById('pause-btn'),
+    muteBtn:      document.getElementById('mute-btn'),
+    progressBar:  document.getElementById('progress-bar'),
+    clock:        document.getElementById('live-clock'),
+    date:         document.getElementById('live-date'),
+    toast:        document.getElementById('toast'),
+    tickerScroll: document.getElementById('ticker-scroll')
+};
+
+// ============================================================
+//  CLOCK
+// ============================================================
+function tickClock() {
+    const now = new Date();
+    D.clock.innerText = now.toLocaleTimeString('hi-IN', {hour12: false});
+    D.date.innerText  = now.toLocaleDateString('hi-IN', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+}
+setInterval(tickClock, 1000);
+tickClock();
+
+// ============================================================
+//  UI HELPERS
+// ============================================================
+function showToast(msg, ms = 4500) {
+    D.toast.innerHTML = msg;
+    D.toast.classList.add('show');
+    setTimeout(() => D.toast.classList.remove('show'), ms);
+}
+function setStatus(icon, text) {
+    D.statusIcon.innerText = icon;
+    D.statusText.innerText = text;
+}
+
+// ============================================================
+//  ROBUST CSV PARSER — Quotes ke andar commas bilkul sahi handle
+// ============================================================
+function parseCSVRow(line) {
+    const cols = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (c === '"') {
+            if (inQ && line[i+1] === '"') { cur += '"'; i++; } // Escaped quote
+            else inQ = !inQ;
+        } else if (c === ',' && !inQ) {
+            cols.push(cur.trim());
+            cur = '';
+        } else cur += c;
+    }
+    cols.push(cur.trim());
+    return cols;
+}
+
+// ============================================================
+//  DATA FETCHER
+// ============================================================
+async function fetchNews(attempt = 1) {
+    if (!CONFIG.CSV_LINK || CONFIG.CSV_LINK.includes('YAHAN')) {
+        showToast('⚠️ CSV_LINK config mein set nahi hai!', 8000);
+        setStatus('❌', 'CSV Link Missing');
+        D.loadingState.style.display = 'none';
+        return;
+    }
+
+    setStatus('⏳', 'Data aa raha hai...');
+    try {
+        const res = await fetch(CONFIG.CSV_LINK + '&nocache=' + Date.now());
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+
+        const text = await res.text();
+        const lines = text.split(/\r?\n/);
+        if (lines.length < 2) throw new Error('Sheet mein koi data nahi');
+
+        const parsed = lines.slice(1)
+            .map(line => {
+                if (!line.trim()) return null;
+                const cols = parseCSVRow(line);
+                const newsText  = (cols[CONFIG.COL_TEXT] || '').replace(/^"|"$/g, '').trim();
+                const mediaLink = (cols[CONFIG.COL_DIRECT_LINK] || '').replace(/^"|"$/g, '').trim();
+                if (!newsText || newsText.length < 2) return null;
+                return { text: newsText, media: mediaLink };
+            })
+            .filter(Boolean);
+
+        if (!parsed.length) throw new Error('Koi valid news nahi mili');
+
+        S.data = parsed;
+        D.totalIdx.innerText = parsed.length;
+        D.tickerScroll.innerText = parsed.map(n => n.text).join('  •  ');
+        setStatus('✅', parsed.length + ' khabarein ready');
+        D.loadingState.style.display = 'none';
+        console.log('✅ Loaded:', parsed);
+
+    } catch (err) {
+        console.error('Fetch Error (attempt ' + attempt + '):', err);
+        if (attempt < CONFIG.RETRY_MAX) {
+            setStatus('🔁', 'Retry ' + attempt + '...');
+            await wait(2000);
+            return fetchNews(attempt + 1);
         }
+        setStatus('❌', 'Load failed');
+        showToast('❌ Sheet nahi khuli: ' + err.message, 7000);
+        D.headline.innerText = '⚠️ Google Sheet se data nahi aaya — CSV link check karein';
+        D.loadingState.style.display = 'none';
+    }
+}
 
-        function speak(txt) {
-            return new Promise(resolve => {
-                const utterance = new SpeechSynthesisUtterance(txt);
-                utterance.lang = 'hi-IN';
-                utterance.rate = 0.9;
-                utterance.onend = resolve;
-                speechSynthesis.speak(utterance);
-            });
-        }
+// ============================================================
+//  MEDIA TYPE DETECTOR
+//  Apps Script Column D mein link deta hai:
+//    VIDEO → /file/d/ID/preview (iframe)
+//    IMAGE → /uc?export=download&id=ID
+// ============================================================
+function detectType(url) {
+    if (!url || url.length < 8) return 'none';
+    const u = url.toLowerCase();
+    if (u.includes('/preview'))            return 'drive_video';   // Apps Script VIDEO link
+    if (u.includes('uc?export=download'))  return 'drive_image';   // Apps Script IMAGE link
+    if (/\.(mp4|webm|ogg|mov|3gp)/.test(u)) return 'direct_video';
+    if (/\.(jpg|jpeg|png|gif|webp|bmp)/.test(u)) return 'direct_image';
+    if (u.includes('drive.google.com'))    return 'drive_video';   // Default drive = iframe
+    return 'drive_image'; // Last fallback
+}
 
-        async function playNews() {
-            if (newsList.length === 0) return;
-            if (index >= newsList.length) index = 0;
+// ============================================================
+//  HIDE ALL MEDIA
+// ============================================================
+function hideAllMedia() {
+    D.img.style.display   = 'none';
+    D.video.style.display = 'none';
+    D.iframe.style.display = 'none';
+    D.noMedia.style.display = 'none';
+    D.mediaErr.style.display = 'none';
+    D.loadingState.style.display = 'none';
+    D.video.pause();
+    D.video.src = '';
+    D.iframe.src = '';
+}
 
-            const item = newsList[index];
-            document.getElementById('headline-text').innerText = item.title;
+// ============================================================
+//  MEDIA LOADERS
+// ============================================================
+function loadDriveVideo(previewUrl) {
+    return new Promise((resolve) => {
+        D.iframe.style.display = 'block';
+        D.iframe.src = previewUrl;
+        // iframe onload unreliable — short wait karo
+        setTimeout(resolve, 1500);
+    });
+}
 
-            const video = document.getElementById('news-video');
-            const img = document.getElementById('news-img');
+function loadDirectVideo(src) {
+    return new Promise((resolve, reject) => {
+        D.video.style.display = 'block';
+        let done = false;
+        const timeout = setTimeout(() => {
+            if (!done) { done = true; reject(new Error('Video timeout')); }
+        }, CONFIG.VIDEO_TIMEOUT_MS);
 
-            video.style.display = 'none';
-            img.style.display = 'none';
+        D.video.oncanplay = () => { if (!done) { done = true; clearTimeout(timeout); resolve(); } };
+        D.video.onerror   = () => { if (!done) { done = true; clearTimeout(timeout); reject(new Error('Video error')); } };
+        D.video.src = src;
+        D.video.load();
+        D.video.play().catch(() => {});
+    });
+}
 
-            // Agar link mein 'id=' hai toh wo Google Drive video hai
-            if (item.media.includes('id=')) {
-                video.src = item.media;
-                video.type = "video/mp4" ;
-                video.style.display = 'block';
-                video.play();
-            } else {
-                img.src = item.media;
-                img.style.display = 'block';
-            }
+function loadImage(src) {
+    return new Promise((resolve) => {
+        D.img.style.display = 'block';
+        D.img.onload  = resolve;
+        D.img.onerror = () => {
+            D.img.style.display = 'none';
+            D.mediaErr.style.display = 'flex';
+            resolve(); // Error pe bhi continue karo
+        };
+        D.img.src = src;
+    });
+}
 
-            await speak(item.title);
-            setTimeout(() => {
-                index++;
-                playNews();
-            }, 3000); // 3 second ka gap
-        }
+// ============================================================
+//  PROGRESS BAR
+// ============================================================
+function startProgress(ms) {
+    D.progressBar.style.transition = 'none';
+    D.progressBar.style.width = '0%';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        D.progressBar.style.transition = `width ${ms}ms linear`;
+        D.progressBar.style.width = '100%';
+    }));
+}
+function resetProgress() {
+    D.progressBar.style.transition = 'none';
+    D.progressBar.style.width = '0%';
+}
 
-        async function startStudio() {
-            document.getElementById('overlay').style.display = 'none';
-            await fetchData();
-            playNews();
-        }
-    </script>
+// ============================================================
+//  HEADLINE TRANSITION
+// ============================================================
+async function setHeadline(text) {
+    D.headline.classList.add('fade-out');
+    await wait(320);
+    D.headline.innerText = text;
+    D.headline.classList.remove('fade-out');
+}
+
+// ============================================================
+//  TEXT TO SPEECH
+// ============================================================
+function speak(text) {
+    return new Promise((resolve) => {
+        if (S.muted) { resolve(); return; }
+        window.speechSynthesis.cancel();
+        const utt = new SpeechSynthesisUtterance(text);
+        utt.lang = CONFIG.SPEECH_LANG;
+        utt.rate = CONFIG.SPEECH_RATE;
+        utt.volume = 1;
+        const voices = window.speechSynthesis.getVoices();
+        const hindi = voices.find(v => v.lang === 'hi-IN' || v.lang === 'hi' || v.name.toLowerCase().includes('hindi'));
+        if (hindi) utt.voice = hindi;
+        utt.onend   = resolve;
+        utt.onerror = () => resolve();
+        window.speechSynthesis.speak(utt);
+    });
+}
+
+// ============================================================
+//  MAIN PLAY LOOP
+// ============================================================
+async function playLoop() {
+    if (!S.playing) return;
+    if (!S.data.length) { setStatus('📭', 'Data nahi'); return; }
+
+    while (S.paused) {
+        await wait(250);
+        if (!S.playing) return;
+    }
+
+    if (S.idx >= S.data.length) S.idx = 0;
+    if (S.idx < 0) S.idx = S.data.length - 1;
+
+    const item = S.data[S.idx];
+    S.skipReq = false; S.prevReq = false;
+
+    D.curIdx.innerText = S.idx + 1;
+    setStatus('📡', `Khabar ${S.idx + 1}/${S.data.length}`);
+    setHeadline(item.text);
+    hideAllMedia();
+    resetProgress();
+
+    const type = detectType(item.media);
+    console.log(`▶ [${S.idx+1}] Type:${type} | ${item.media}`);
+
+    // ---- Load media ----
+    try {
+        if      (type === 'none')          { D.noMedia.style.display = 'flex'; }
+        else if (type === 'drive_video')   { await loadDriveVideo(item.media); }
+        else if (type === 'direct_video')  { await loadDirectVideo(item.media); }
+        else if (type === 'drive_image' || type === 'direct_image') { await loadImage(item.media); }
+    } catch (err) {
+        console.warn('Media Error:', err.message);
+        D.mediaErr.style.display = 'flex';
+    }
+
+    // ---- Speech ----
+    const estDuration = Math.max(2500, (item.text.length / (2.8 * CONFIG.SPEECH_RATE)) * 1000);
+    startProgress(estDuration + CONFIG.DISPLAY_TIME_MS);
+
+    await speak(item.text);
+    if (!S.playing || S.skipReq || S.prevReq) {
+        S.idx += S.prevReq ? -1 : 1;
+        playLoop(); return;
+    }
+
+    await wait(CONFIG.DISPLAY_TIME_MS);
+    if (!S.playing || S.skipReq) { S.idx++; playLoop(); return; }
+
+    S.idx++;
+    playLoop();
+}
+
+// ============================================================
+//  CONTROLS
+// ============================================================
+function goToNext() { S.skipReq = true; window.speechSynthesis.cancel(); S.idx++; }
+function goToPrev() { S.prevReq = true; window.speechSynthesis.cancel(); S.idx = Math.max(0, S.idx - 1); }
+
+function togglePause() {
+    S.paused = !S.paused;
+    D.pauseBtn.innerText = S.paused ? '▶' : '⏸';
+    D.pauseBtn.classList.toggle('active', S.paused);
+    if (S.paused) { window.speechSynthesis.cancel(); setStatus('⏸', 'Paused'); }
+    else setStatus('📡', 'Resuming...');
+}
+function toggleMute() {
+    S.muted = !S.muted;
+    D.muteBtn.innerText = S.muted ? '🔇' : '🔊';
+    D.muteBtn.classList.toggle('active', S.muted);
+    if (S.muted) window.speechSynthesis.cancel();
+}
+async function refreshData() {
+    window.speechSynthesis.cancel();
+    hideAllMedia();
+    D.loadingState.style.display = 'flex';
+    await fetchNews();
+    if (S.playing) { S.idx = 0; playLoop(); }
+}
+
+// ============================================================
+//  AUTO REFRESH
+// ============================================================
+function setupAutoRefresh() {
+    if (!CONFIG.AUTO_REFRESH_MIN) return;
+    clearInterval(S.refreshTimer);
+    S.refreshTimer = setInterval(async () => {
+        console.log('🔄 Auto-refresh...');
+        await fetchNews();
+    }, CONFIG.AUTO_REFRESH_MIN * 60000);
+}
+
+// ============================================================
+//  START
+// ============================================================
+async function startChannel() {
+    D.overlay.classList.add('hidden');
+    setTimeout(() => D.overlay.style.display = 'none', 800);
+    D.loadingState.style.display = 'flex';
+
+    // Mobile ke liye voice warm-up
+    const warm = new SpeechSynthesisUtterance(' ');
+    warm.volume = 0;
+    window.speechSynthesis.speak(warm);
+
+    if (!window.speechSynthesis.getVoices().length) {
+        await new Promise(r => { window.speechSynthesis.onvoiceschanged = r; setTimeout(r, 2000); });
+    }
+
+    await fetchNews();
+
+    if (S.data.length > 0) {
+        S.playing = true;
+        setupAutoRefresh();
+        playLoop();
+    } else {
+        D.headline.innerText = '⚠️ Koi news nahi mili. Sheet aur CSV link check karein.';
+        setStatus('❌', 'Data nahi mila');
+    }
+}
+
+// ============================================================
+//  KEYBOARD SHORTCUTS
+// ============================================================
+document.addEventListener('keydown', e => {
+    switch(e.code) {
+        case 'ArrowRight': case 'Space': e.preventDefault(); goToNext(); break;
+        case 'ArrowLeft':  e.preventDefault(); goToPrev(); break;
+        case 'KeyP': togglePause(); break;
+        case 'KeyM': toggleMute(); break;
+        case 'KeyR': refreshData(); break;
+    }
+});
+
+const wait = ms => new Promise(r => setTimeout(r, ms));
+window.speechSynthesis.getVoices(); // Preload
+</script>
 </body>
 </html>
