@@ -94,6 +94,7 @@
             // Agar link mein 'id=' hai toh wo Google Drive video hai
             if (item.media.includes('id=')) {
                 video.src = item.media;
+                video.type = "video/mp4" ;
                 video.style.display = 'block';
                 video.play();
             } else {
